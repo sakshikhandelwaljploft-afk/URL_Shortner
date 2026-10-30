@@ -1,0 +1,31 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+    RewriteBase /url_shortener/
+
+    # Prevent direct access to sensitive files
+    <FilesMatch "^\.|\.(env|json|lock|xml|yml|yaml|sqlite)$">
+        Require all denied
+    </FilesMatch>
+
+    # 1. Strip /public from incoming URLs (e.g. /url_shortener/public/invitations -> /url_shortener/invitations)
+    RewriteCond %{THE_REQUEST} /url_shortener/public/([^\s?]*) [NC]
+    RewriteRule ^public/?(.*)$ /url_shortener/$1 [L,R=301]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
